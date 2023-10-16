@@ -1,0 +1,50 @@
+{
+    "titleAplication": "RODO APP",
+    "toolbar":{
+        "imgs":{
+            "iconShort":"teste"
+        }
+    },
+    "navgation":{
+        "home":"Início",
+        "listRequest":"Pedidos de compra",
+        "product":"produto"
+    },
+
+    "request":{
+        "createRequest":"Criar Pedido",
+
+        "table":{
+            "numberRequest":"Nº Pedido",
+            "NumberNotes":"Nº Notas",
+            "supplier":"Fornecedor",
+            "statusShip":"Status de pedido",
+            "statusOrdem":"Prioridade",
+            "statusPay":"Pagamentos",
+            "actions":"Ações"
+        },
+        "addRequest":{
+            "headProductsList":{
+                "name":"Nome",
+                "value":"Valor",
+                "amountSolicited":"Quantia solicitada",
+                "amountShiped":"Quantia entregue",
+                "statusShip":"Status de entrega",
+                "valueShip":"Valor de frete",
+                "actions":"Ações"
+            }
+        },
+        "icon":{
+            "onlyNote":"mdi-note-search-outline",
+            "notes":"mdi-text-box-multiple-outline",
+            "infoRequest":"mdi-text-box-search-outline",
+            "editRequest":"mdi-text-box-edit-outline"
+        },
+        "iconTooltip":{
+            "onlyNote":"Ver nota",
+            "notes":"Ver notas",
+            "infoRequest":"Ver pedido",
+            "editRequest":"Editar pedido"
+        }     
+    }
+}
