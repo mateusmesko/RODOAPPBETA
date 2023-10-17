@@ -161,40 +161,6 @@ export default {
 		}
     }),
     methods:{
-		valueProps(){
-			return this.requestInfo
-		},
-
-		createProduct(){//
-			this.insertModelProduct()
-			this.showModal()
-		},
-		insertModelProduct(){
-			this.productWorking = new RequestProduct
-		},
-		showModal() {
-			this.isModalVisible = true
-		},
-		
-		saveModal() {
-			this.isEdited() ? this.editedRequestProduct() : this.saveNewRequestProduct()
-                                                                                                                                                                                                                            
-			this.closeModal()
-		},
-		isEdited(){
-			return this.idEdit
-		},
-		editedRequestProduct(){
-			this.request.products[this.newId] = this.productWorking
-			this.idEdit = false
-		},
-		saveNewRequestProduct(){
-			this.request.products.push(this.productWorking);
-		},
-
-		closeModal() {
-			this.isModalVisible = false
-		},
 		async sendData(request) {
 			console.log('send data')
 			console.log('send data', request)
@@ -241,10 +207,80 @@ export default {
           console.error('Erro ao fazer a solicitação:', error);
         }
       },
-		saveRequest(newRequest){
+	  async takeValues(){
+			const response = await axios.get(
+            	'http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/crm/v1/customerVendor',
+          	);
+          	console.log("vendor",response.data)
 
-			this.sendData(newRequest)
-			console.log('tgeste')
+			const response2 = await axios.get(
+            	'http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/fat/v1/paymentcondition/',
+          	);
+			console.log("paiment",response2.data)
+
+			const response3 = await axios.get(
+            	'http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/fat/v1/carrier',
+        	);
+			console.log("carrier",response3.data)
+		},
+		valueProps(){
+			return this.requestInfo
+		},
+
+		createProduct(){//
+			this.insertModelProduct()
+			this.showModal()
+		},
+		insertModelProduct(){
+			this.productWorking = new RequestProduct
+		},
+		showModal() {
+			this.isModalVisible = true
+		},
+		
+		saveModal() {
+			this.isEdited() ? this.editedRequestProduct() : this.saveNewRequestProduct()
+                                                                                                                                                                                                                            
+			this.closeModal()
+		},
+		isEdited(){
+			return this.idEdit
+		},
+		editedRequestProduct(){
+			this.request.products[this.newId] = this.productWorking
+			this.idEdit = false
+		},
+		saveNewRequestProduct(){
+			this.request.products.push(this.productWorking);
+		},
+
+		closeModal() {
+			this.isModalVisible = false
+		},
+
+		saveRequest(newRequest){
+			this.changeStatus()
+			
+			let request = JSON.stringify(newRequest)
+			
+			if(this.$route.params.id){
+				db.collection('task').doc(this.$route.params.id).set(JSON.parse(request))
+			}else {
+				this.form.subject='thiago gomez'
+				
+				
+				
+				db.collection('task').add(JSON.parse(request))
+			}
+			let requestList = this.fetchAllRequest()
+			
+			if(this.$route.params.id+1){
+				requestList[this.$route.params.id] = newRequest
+			} else {
+				requestList.push(newRequest)
+			}
+			this.addNewRequest(requestList)
+			this.backRouteList()
 		},
 		changeStatus(){
 			if (this.request.status == 'receivedRequest'){
@@ -308,10 +344,47 @@ export default {
 			this.request = new ModelRequest(1, this.requestInfo, this.requestSupplier, this.requestFisco, this.requestPayment,)
 			this.request.products = []
 		},
-	
+		 async sendData() {
+      //   try {
+      //     const data = {
+      //       "PEDIDO":[{
+      //           "FILIAL":"0101",
+      //           "FORNECEDOR":"000111",
+      //           "LOJA":"01",
+      //           "CONDFIN":"001",
+      //           "OPERACAO":"1",
+      //           "NUMERO":"",
+      //           "EMISSAO":"",
+      //           "NFISCAL":"",
+      //           "SERIE":"",
+      //       "ITENS":[{
+      //           "ITEM":"001",
+      //           "PRODUTO":"RD208009105",
+      //           "QUANTIDADE":1,
+      //           "VALUNIT":5
+      //           },{
+      //           "ITEM":"002",
+      //           "PRODUTO":"RD208009106",
+      //           "QUANTIDADE":1,
+      //           "VALUNIT":5
+      //           }]
+      //       }]
+      //       };
+  
+          const response = await axios.get(
+            'http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/reidoapsdu/consultar/fornecedores/',
+     
+          );
+          console.log("aquiiiii", response)
+          
+			// O código de resposta está em response.status
+			// Os dados da resposta estão em response.data
+
+      	 },
     },
 
 	created(){
+		this.sendData()
 		this.configModel()
 		
 		if(this.$route.params.id){
