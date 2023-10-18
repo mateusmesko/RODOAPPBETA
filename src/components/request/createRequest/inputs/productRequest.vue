@@ -17,7 +17,7 @@
                 >
                     <div>
                         <v-autocomplete
-                        required
+                            required
                             :rules="[rules.required]"
                             v-model="product.selectedOption"
                             :items="options"
@@ -33,7 +33,7 @@
                     v-if="showField('amontProduct')"
                 >
                     <v-text-field
-                      
+
                         :rules="[rules.required]"
                         v-model="product.amontProduct"
                         label="quantidade"

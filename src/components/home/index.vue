@@ -1,20 +1,20 @@
 <template>
 	<div id="app">
-            <v-row justify="center" class="ma-1">
-                <v-card @click="navRouter(item.router)" v-for="(item, index) in itensOptions" :key="index"
-                    class="mx-auto text-center ma-1"
-                    width="150"
-                    color="green"
-                    elevation="0"
-                >
-                    <div class="text-overline ma-2">
-                        <v-icon large color="blue">mdi-book-open-page-variant</v-icon>
-                    </div>
-
-                    <v-list-item-subtitle class="pa-5">{{item.title}}</v-list-item-subtitle>
-                </v-card>
-               
-            </v-row>
+        <v-row justify="center" class="ma-1">
+            <v-card @click="navRouter(item.router)" v-for="(item, index) in itensOptions" :key="index"
+                class="mx-auto text-center ma-1"
+                width="180"
+                color="indigo lighten-5"
+                hover="indigo lighten-2"
+                elevation="0"
+            >
+                <div class="text-overline ma-2">
+                    <v-icon large color="blue">mdi-book-open-page-variant</v-icon>
+                </div>
+                
+                <v-list-item-subtitle class="pa-5">{{item.title}}</v-list-item-subtitle>
+            </v-card>
+        </v-row>
     </div>
 </template>
   
@@ -25,7 +25,7 @@ export default {
 		return {
 
             itensOptions: [
-				{ title: this.$t('navgation.home'), icon: 'mdi-home', router:'create' },
+				{ title: this.$t('navgation.listRequest'), icon: 'mdi-home', router:'create' },
 			],
 		}
 	},

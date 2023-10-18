@@ -7,10 +7,11 @@
                 <v-col md="3"
                     v-if="showField('nameSupplier')"
                 >
-                    <v-text-field
-                        v-model="propReceived.supplier.nameSupplier"
+                    <v-select
+                    v-model="propReceived.supplier.nameSupplier"
+                        :items="fornecedor"
                         label="Fornecedor(input)"
-                    ></v-text-field>
+                    ></v-select>
                 </v-col>
 
                 <v-col md="3"
@@ -44,6 +45,8 @@ import { statusNewRequest } from './fields';
         name: 'SupplierRequest',
 
         data: () => ({
+            fornecedor: ['0001', '0002', '0003', '0004'],
+
             newRequestFieldsReturn:{
                 nameSupplier: true,
                 dateShipedSupplier: true,
