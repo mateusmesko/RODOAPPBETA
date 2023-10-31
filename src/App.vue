@@ -43,29 +43,43 @@ export default {
       this.drawer = this.drawer ?  false : true
     },
 
-
-    saveToLocalStorage(data) {
-      // Salvar os dados no localStorage
-      localStorage.setItem(data, JSON.stringify(this.listProducts));
+    saveToLocalStorageProducts() {
+      localStorage.setItem('apiDataA', JSON.stringify(this.listProducts));
     },
-    
+
     showLocalStorageData() {
-      // Recuperar os dados do localStorage e exibi-los
-      const produtos = localStorage.getItem('apiData');
+      const produtos = localStorage.getItem('apiData1');
       this.listProducts = produtos ? JSON.parse(produtos) : [];
-      console.log(localStorage)
-      
-    },
-
-    takeValuesApi(){
-      this.takeProducts(1)
+      console.log(localStorage)  
     },
 
     takeProducts(page) {
-      let pageSize = 50000
+      let pageSize = 10000
 
-      let API_URL =this.apiUrl + `api/retail/v1/retailItem?page=${page}&pageSize=${pageSize}&fields=code,description`
+      let API_URL =this.apiUrl + `api/retail/v1/retailItem?page=1&pageSize=10000&fields=code,description,MercosulNomenclature`
 
+      axios.get(API_URL)
+          .then(response => {
+          
+          if (response.status !== 200 ) {
+              console.error('Erro na solicitação:', response.status);
+              window.alert('erro em RPO SOLICITE SUPORTE')
+          }
+    
+          const items = response.data.items;
+          
+          localStorage.setItem('apiData1', JSON.stringify(items));
+          console.log('save1')
+        })
+        .catch(error => {
+          console.error('Erro:', error);
+        });
+    },
+
+    takeProducts2(page) {
+      let pageSize = 10000
+
+      let API_URL =this.apiUrl + `api/retail/v1/retailItem?page=2&pageSize=10000&fields=code,description,MercosulNomenclature`
       axios.get(API_URL)
           .then(response => {
           
@@ -78,14 +92,38 @@ export default {
     
           const items = response.data.items;
     
-          this.listProducts = this.listProducts.concat(items);
           
-          this.saveToLocalStorage('apiData')
+          localStorage.setItem('apiData2', JSON.stringify(items));
+          console.log('save2')
         })
         .catch(error => {
           console.error('Erro:', error);
         });
     },
+    takeProducts4(page) {
+
+      let API_URL =this.apiUrl + `api/retail/v1/retailItem?page=4&pageSize=10000&fields=code,description,MercosulNomenclature`
+      axios.get(API_URL)
+          .then(response => {
+          
+          if (response.status !== 200 ) {
+              console.error('Erro na solicitação:', response.status);
+              window.alert('erro em RPO SOLICITE SUPORTE')
+              throw new Error('Não foi possível acessar a API da TOTVS');
+
+          }
+    
+          const items = response.data.items;
+    
+          
+          localStorage.setItem('apiData4', JSON.stringify(items));
+          console.log('save3')
+        })
+        .catch(error => {
+          console.error('Erro:', error);
+        });
+    },
+    
     takeBranch(){
 
       let API_URL = `http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/reidoapsdu/consultar/filiais/`
@@ -100,7 +138,7 @@ export default {
     
           const items = response;
           console.log("filiais",items)
-          
+          localStorage.setItem('branch', JSON.stringify(items.data));
         })
         .catch(error => {
           console.error('Erro:', error);
@@ -108,7 +146,7 @@ export default {
     },
     takeTransport(){
 
-      let API_URL = `http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/fat/v1/carrier`
+      let API_URL = `http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/fat/v1/carrier/?pageSize=50000`
 
       axios.get(API_URL)
         .then(response => {
@@ -118,9 +156,9 @@ export default {
             throw new Error('Não foi possível acessar a API da TOTVS');
         }
 
-        const items = response;
+        const items = response; 
         console.log("transportadoras",items)
-        
+        localStorage.setItem('transport', JSON.stringify(items.data));
       })
       .catch(error => {
         console.error('Erro:', error);
@@ -139,28 +177,8 @@ export default {
         }
 
         const items = response;
-        console.log("pagamento",items)
-        
-      })
-      .catch(error => {
-        console.error('Erro:', error);
-      });
-    },
-    takeVendor(){
-      
-      let API_URL = `http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/reidoapsdu/consultar/fornecedores/`
-
-      axios.get(API_URL)
-        .then(response => {
-        
-        if (response.status !== 200 ) {
-            console.error('Erro na solicitação:', response.status);
-            throw new Error('Não foi possível acessar a API da TOTVS');
-        }
-
-        const items = response;
-        console.log("fornecedor",items)
-        
+        console.log("pagamento", items.data.items)
+        localStorage.setItem('payment', JSON.stringify(items.data.items));
       })
       .catch(error => {
         console.error('Erro:', error);
@@ -180,23 +198,47 @@ export default {
 
         const items = response;
         console.log("pedido",items)
-        
+        localStorage.setItem('request', JSON.stringify(items.data));
+       
       })
       .catch(error => {
         console.error('Erro:', error);
       });
-    }
+    },
+    takeCnpj(){
+              let API_URL = `http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/reidoapsdu/consultar/cnpjFornecedores/`
+
+                axios.get(API_URL)
+                .then(response => {
+
+                    if (response.status !== 200 ) {
+                        console.error('Erro na solicitação:', response.status);
+                        throw new Error('Não foi possível acessar a API da TOTVS');
+                    }
+
+                    const items = response;
+                    localStorage.setItem('cnpjVendor', JSON.stringify(items.data));
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                });
+            },
   },
 
   created(){
-    this.takeValuesApi()
+    localStorage.clear()
+    this.takeProducts(1)
+    this.takeProducts2(2)
+
+    this.takeProducts4(2)
     this.takeBranch()
     this.takeTransport()
     this.takePayment()
-    this.takeVendor()
+    //this.takeVendor()
     this.takeRequest()
+    this.takeCnpj()
     //  console.log("list",this.listProducts)
-    // this.saveToLocalStorage()
+    // this.saveToLocalStorageProducts()
     // this.showLocalStorageData()
     
   }

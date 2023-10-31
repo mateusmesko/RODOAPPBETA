@@ -6,7 +6,19 @@
           class="pa-0 ma-0"
           v-if="product"
         >
+        <v-card >
+            <v-alert
+                text
+                prominent
+                type="info"
+                icon="mdi-cloud-alert"
+                v-if="!options"
+            >
+                Carregando...
+            </v-alert>
+        </v-card>
         <v-form
+            v-if="options"
             ref="form"
             @submit.prevent="submit"
         >
@@ -18,23 +30,24 @@
                     <div>
                         <v-autocomplete
                             required
-                            :rules="[rules.required]"
+                            :rules="[rules.numberValid]"
                             v-model="product.selectedOption"
                             :items="options"
                             label="Selecione um produto"
                             :filter="customFilter"
                             @input="onItemSelected"
                         ></v-autocomplete>
+                        
                     </div>
                 </v-col>
-                
+            </v-row>
+            <v-row>
                 <v-col
                     md="3"
                     v-if="showField('amontProduct')"
                 >
                     <v-text-field
-
-                        :rules="[rules.required]"
+                        :rules="rulesField"
                         v-model="product.amontProduct"
                         label="quantidade"
                     ></v-text-field>
@@ -46,8 +59,9 @@
                 >
                     <v-text-field
                        
-                        :rules="[rules.required]"
+                        :rules="isNumberRule || isNumberPos"
                         v-model="product.discountProduct"
+                        
                         prefix="$"
                         label="Desconto"
                     ></v-text-field>
@@ -59,14 +73,26 @@
                 >
                     <v-text-field
                       
-                        :rules="[rules.required]"
+                        :rules="rulesField"
                         v-model="product.valueProduct"
                         prefix="$"
                         label="valor"
+                        
                     ></v-text-field>
                     <!-- verificar depois o campo para ter 2 casas decimais -->
                 </v-col>
-                    
+                <v-col
+                    md="3"
+                    v-if="product.valueProduct && product.amontProduct"
+                >
+                    <v-text-field
+                        :value="`${product.valueProduct * product.amontProduct}`"
+                        label="VALOR TOTAL"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+            </v-row>
+            <v-row>
                 <v-col
                     md="3"
                     v-if="showField('observationProduct')"
@@ -89,7 +115,36 @@
                     ></v-text-field>
                 </v-col>
             </v-row>
-
+            <v-row v-if="product.selectedOption">
+                <v-col
+                    md="3"
+                >
+                    <v-text-field
+                        :value="`${product.selectedOption.Code}`"
+                        label="CODIGO DO PRODUTO"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+                <v-col
+                    md="3"
+                >
+                    <v-text-field
+                        :value="`${product.selectedOption.Description}`"
+                        label="Descrição de produto"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+                  <v-col
+                    md="3"
+                >
+                    <v-text-field
+                        :value="`${product.selectedOption.MercosulNomenclature}`"
+                        label="NCM"
+                        readonly
+                    ></v-text-field>
+                </v-col>
+                
+            </v-row>
             <v-row>
                 <v-col
                     md="3"
@@ -148,11 +203,38 @@ import { statusNewRequest } from './fields';
             
         },
         data: () => ({
+            allProducts : false,
+            validNumber : null,
             select: { state: 'Status de entrega'},
             selected: {},
             rules: {
                 required: value => !!value || 'Campo obrigatorio.',
+                numberValid: value => !value >= 0 || 'Campo aqui.'
             },
+            isNumberRule: [
+                value => {
+                    if (!/[^0-9]/.test(value)) return true
+                    return 'Verifique o valor informado em campo'
+                },
+            ],
+            isNumberPos: [
+                value => {
+                    if (!value >= 0) return true
+
+                    return 'Verifique o valor informado em campo'
+                },
+            ],
+            rulesField: [
+                value => {
+                if (value) return true
+
+                return 'Campo obrigatorio.'
+                },
+                value => {
+                    if (!/[^0-9]/.test(value)) return true
+                    return 'Verifique o valor informado em campo'
+                },
+            ],
             items: [
                 { state: 'Cancelada' ,color: 'red' },
                 { state: 'Aguardando', color: 'yellow lighten-1' },
@@ -162,28 +244,18 @@ import { statusNewRequest } from './fields';
             newRequestFieldsReturn: {
                 selectedOption: true,
                 amontProduct: true,
-                discountProduct: true,
+                discountProduct: false,
                 valueProduct: true,
                 observationProduct: true,
                 suggestionProduct: true,
-                amontShipedProduct: true,
-                statusShipProduct: true
-            },
-            newRequestFieldsReturn: {
-                selectedOption: true,
-                amontProduct: true,
-                discountProduct: true,
-                valueProduct: true,
-                observationProduct: true,
-                suggestionProduct: true,
-                amontShipedProduct: true,
+                amontShipedProduct: false,
                 statusShipProduct: true
             },
 
             confirmedRequest: {
                 selectedOption: true,
                 amontProduct: true,
-                discountProduct: true,
+                discountProduct: false,
                 valueProduct: true,
                 observationProduct: true,
                 suggestionProduct: true,
@@ -225,7 +297,7 @@ import { statusNewRequest } from './fields';
             },
 
             selectedOption: null,
-            options: [], // Aqui armazenaremos as opções do v-select
+            options: null, // Aqui armazenaremos as opções do v-select
             loading: false,
        
             requestStatusNoew: ''
@@ -234,30 +306,197 @@ import { statusNewRequest } from './fields';
             formIsValid() {
                 return(
                     this.product.selectedOption &&
-                    this.product.amontProduct &&
-                    this.product.reasonProduct &&
+                    this.product.amontProduct && 
+                    this.product.amontProduct >= 0 &&  !isNaN(this.product.amontProduct) &&
+                    this.product.valueProduct &&
+                    this.product.valueProduct >= 0 &&  !isNaN(this.product.valueProduct) &&
                     this.product.statusShipProduct
                 )
-            }
+            },
+           
         },
         mounted() {
             this.loadOptionsFromLocalStorage(); 
         },
         methods:{
-            loadOptionsFromLocalStorage() {
-                const produtos = localStorage.getItem('apiData');
+            
+            valueAmont(){
+                console.log('teste aqui')
+                this.product.amontProduct
+                this.product.amontProduct = this.product.amontProduct.replace(/[^0-9.]/g, '');
 
-                if (produtos) {
-                    this.options = JSON.parse(produtos).map(item => ({
-                        text: `${item.Code} -> ${item.Description}` ,
-                        value: item,
-                    }));
+                // Substituir vírgulas (,) por pontos (.)
+                this.product.amontProduct = this.product.amontProduct.replace(/,/g, '.');
+
+                // Impedir números negativos
+                if (this.product.amontProduct < 0) {
+                    this.product.amontProduct = '';
                 }
             },
+            loadOptionsFromLocalStorage() {
+                
+                const produtos = localStorage.getItem('apiData1');
+                const produtos2 = localStorage.getItem('apiData2');
+                const produtos3 = localStorage.getItem('apiData4');
+                
+              
+                if (produtos) {
+                    let options1 = JSON.parse(produtos).map(item => ({
+                        text: `${item.Code.trim()}-> ${item.Description.trim()} -> ${item.MercosulNomenclature.trim()}` ,
+                        value: item,
+                    }));
+                    this.options = options1
+                } else {
+                    let API_URL = `http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/retail/v1/retailItem?page=1&pageSize=10000&fields=code,description,MercosulNomenclature`
+                    axios.get(API_URL)
+                        .then(response => {
+                        
+                        if (response.status !== 200 ) {
+                            console.error('Erro na solicitação:', response.status);
+                            window.alert('erro em RPO SOLICITE SUPORTE')
+                            throw new Error('Não foi possível acessar a API da TOTVS');
 
+                        }
+                    
+                         
+                            const items = response.data.items;
+                            console.log(items)
+                            let options1 = items.map(item => ({
+                                text: `${item.Code.trim()}-> ${item.Description.trim()} -> ${item.MercosulNomenclature.trim()} -> ` ,
+                                value: item,
+                            }));
+                            
+                            this.options =this.options? this.options.concat(options1) : this.options = options1
+                    
+                        })
+                            .catch(error => {
+                            console.error('Erro:', error);
+                        });
+                        console.log('teste')
+                }
+                if (produtos2){
+                    let options2 = JSON.parse(produtos2).map(item => ({
+                        text: `${item.Code.trim()}-> ${item.Description.trim()} -> ${item.MercosulNomenclature.trim()} ` ,
+                        value: item,
+                    }));
+                    this.options = this.options.concat(options2)
+                }else {
+                    let API_URL = `http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/retail/v1/retailItem?page=2&pageSize=10000&fields=code,description,MercosulNomenclature`
+                    axios.get(API_URL)
+                        .then(response => {
+                        
+                        if (response.status !== 200 ) {
+                            console.error('Erro na solicitação:', response.status);
+                            window.alert('erro em RPO SOLICITE SUPORTE')
+                            throw new Error('Não foi possível acessar a API da TOTVS');
+
+                        }
+                    
+                         
+                            const items = response.data.items;
+                            console.log(items)
+                            let options1 = items.map(item => ({
+                                text: `${item.Code.trim()}-> ${item.Description.trim()} -> ${item.MercosulNomenclature.trim()} -> ` ,
+                                value: item,
+                            }));
+                            
+                            this.options =this.options? this.options.concat(options1) : this.options = options1
+                    
+                        })
+                            .catch(error => {
+                            console.error('Erro:', error);
+                        });
+                        console.log('teste')
+                }
+                if (produtos3){
+                    let options3 = JSON.parse(produtos3).map(item => ({
+                        text: `${item.Code.trim()} -> ${item.Description.trim()} ->${item.MercosulNomenclature.trim()} ` ,
+                        value: item,
+                    }));
+                    this.options = this.options.concat(options3)
+
+                }else {
+                    let API_URL = `http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/retail/v1/retailItem?page=3&pageSize=10000&fields=code,description,MercosulNomenclature`
+                    axios.get(API_URL)
+                        .then(response => {
+                        
+                        if (response.status !== 200 ) {
+                            console.error('Erro na solicitação:', response.status);
+                            window.alert('erro em RPO SOLICITE SUPORTE')
+                            throw new Error('Não foi possível acessar a API da TOTVS');
+
+                        }
+                    
+                         
+                            const items = response.data.items;
+                            console.log(items)
+                            let options1 = items.map(item => ({
+                                text: `${item.Code.trim()}-> ${item.Description.trim()} -> ${item.MercosulNomenclature.trim()} -> ` ,
+                                value: item,
+                            }));
+                            
+                            this.options =this.options? this.options.concat(options1) : this.options = options1
+                    
+                        })
+                            .catch(error => {
+                            console.error('Erro:', error);
+                        });
+                        console.log('teste')
+                }
+                if (true){
+                    let API_URL = `http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/retail/v1/retailItem?page=3&pageSize=10000&fields=code,description,MercosulNomenclature`
+                    axios.get(API_URL)
+                        .then(response => {
+                        
+                        if (response.status !== 200 ) {
+                            console.error('Erro na solicitação:', response.status);
+                            window.alert('erro em RPO SOLICITE SUPORTE')
+                            throw new Error('Não foi possível acessar a API da TOTVS');
+
+                        }
+                    
+                         
+                            const items = response.data.items;
+                            console.log(items)
+                            let options4 = items.map(item => ({
+                                text: `${item.Code.trim()}-> ${item.Description.trim()} -> ${item.MercosulNomenclature.trim()} -> ` ,
+                                value: item,
+                            }));
+                            
+                            this.options = this.options.concat(options4)
+                    
+                        })
+                            .catch(error => {
+                            console.error('Erro:', error);
+                        });
+                        
+                }
+                this.allProducts = true
+                    
+            },
+
+             
             onItemSelected(){
                 this.product.codeProduct = this.product.selectedOption.Code
                 this.product.nameProduct = this.product.selectedOption.Description
+                console.log(this.product.selectedOption)
+                let API_URL = `http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/retail/v1/retailItem?page=1&pageSize=1&Code=${this.product.selectedOption.Code}`
+                
+                axios.get(API_URL)
+                    .then(response => {
+                
+                if (response.status !== 200 ) {
+                    console.error('Erro na solicitação:', response.status);
+                    window.alert('erro em RPO SOLICITE SUPORTE')
+                    throw new Error('Não foi possível acessar a API da TOTVS');
+                }
+                    const items = response.data;
+                    console.log("produto selecionado",items)
+                    this.product.valueProduct = items.SalesPrice
+                })
+                    .catch(error => {
+                    console.error('Erro:', error);
+                });
             },
 
             customFilter(item, queryText, itemText) {
@@ -304,6 +543,7 @@ import { statusNewRequest } from './fields';
         },
 
         created(){
+
             let requestGet = localStorage.getItem('status');
             this.requestStatusNoew = JSON.parse(requestGet)
             console.log( JSON.parse(requestGet) )

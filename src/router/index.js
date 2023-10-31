@@ -29,8 +29,8 @@ const routes = [
   },
 
   {
-    path: '/list',
-    name: 'list',
+    path: '/listRequest',
+    name: 'listRequest',
     component: () => import('../components/request/listRequest')
   },
   

@@ -25,7 +25,7 @@ export default {
 		return {
 
             itensOptions: [
-				{ title: this.$t('navgation.listRequest'), icon: 'mdi-home', router:'create' },
+				{ title: this.$t('navgation.listRequest'), icon: 'mdi-home', router:'listRequest' },
 			],
 		}
 	},

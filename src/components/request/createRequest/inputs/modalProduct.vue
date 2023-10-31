@@ -46,17 +46,19 @@ export default {
 		closeModal() {
 			this.$emit('close');
 		},
+
 		saveModal() {
 			this.$emit('save');
 		},
-		showField(field){ 
+
+		showField(field){
 			const statusAndFieldValid = statusDefine =>{
 				const listStatus = {
-					 newRequest: statusNewRequest(field, this.newRequestFieldsReturn),
-                        confirmedRequest: statusNewRequest(field, this.confirmedRequest),
-                        boughtRequest: statusNewRequest(field, this.boughtRequest),
-                        receivedRequest: statusNewRequest(field, this.receivedRequest),
-                        Finalizado: statusNewRequest(field, this.Finalizado),
+					newRequest: statusNewRequest(field, this.newRequestFieldsReturn),
+					confirmedRequest: statusNewRequest(field, this.confirmedRequest),
+					boughtRequest: statusNewRequest(field, this.boughtRequest),
+					receivedRequest: statusNewRequest(field, this.receivedRequest),
+					Finalizado: statusNewRequest(field, this.Finalizado),
 				}
 
 				return listStatus[statusDefine]

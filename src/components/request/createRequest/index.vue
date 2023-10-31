@@ -1,8 +1,9 @@
 <template>
 	<div style="background-color: rgb(207, 207, 207);height: 100%;">
 		<v-btn 	class="ma-2 rodo-btn" elevation="0" 
-				
+						
 		v-for="(item,i) of panel"
+		v-if="item.show"
 				:key="i" 
 				@click="showExpansionPainel(item.component)" 
 				color="blue"
@@ -18,14 +19,16 @@
 			color="success" 
 			class="ma-3"
 			:disabled="false"
-			elevation="0" @click="saveRequest(request)"
+			elevation="0" @click="sendData(request)"
+			
 		>
 			<!-- :disabled="!request.info.numberRequest" -->
 			<v-icon light>mdi-plus</v-icon>
 			
-			SALVAR PEDIDO
+			SALVAR PEDIDO em filial 
 		</v-btn>
-
+		<div>
+		</div>
 		<component 
 			class="ma-2 pa-6" 
 			style="background-color: rgb(231, 231, 231); border-radius: 16px;" :is="componentSelected" :propReceived="request"/>
@@ -151,7 +154,7 @@ export default {
 		panel:[
 			{title:'Dados do pedido', tag:1, component:'InfoRequest', show:true, icon:'mdi-information-variant-box-outline'},
 			{title:'Dados do fornecedor', tag:5,component:'SupplierRequest', show:true, icon:'mdi-human-dolly'},
-			{title:'Dados de nota', tag:2, component:'FiscoRequest', show:true, icon:'mdi-note-outline'},
+			// {title:'Dados de nota', tag:2, component:'FiscoRequest', show:true, icon:'mdi-note-outline'},
 			{title:'Produtos de pedido', tag:3, component:'ProductRequest', show:true, icon:'mdi-archive-check-outline'},
 			{title:'Pagamento', tag:4, component:'PaymentRequest', show:true, icon:'mdi-cash'},
 		],
@@ -161,68 +164,76 @@ export default {
 		}
     }),
     methods:{
-		async sendData(request) {
-			console.log('send data')
-			console.log('send data', request)
-        try {
-          const data = {
-            "PEDIDO":[{
-                "FILIAL":"0101",//request.info.branchRequest,
-                "FORNECEDOR":"000111",//request.supplier.nameSupplier,
-                "LOJA":"01",//request.info.userRequest,
-                "CONDFIN":"001",//request.payment.installmentsPayment,
-                "OPERACAO":"1",//request.status,
-                "NUMERO":"",//request.info.numberRequest,
-                "EMISSAO":"",//s / n,
-                "NFISCAL":"",//request.fisco.numberFisco,
-                "SERIE":"",//request.fisco.serialFisco,
-                "ITENS":[
-					
-				{
-                "ITEM":"001",//sequel
-                "PRODUTO":"RD208009105",//prod code
-                "QUANTIDADE":1,// quantidade
-                "VALUNIT":5// value
-                },
-
-				{
-                "ITEM":"002",//sequel
-                "PRODUTO":"RD208009106",//prod code
-                "QUANTIDADE":1,// quantidade
-                "VALUNIT":5// value
-                }]
-            }]
-            };
-  
-          const response = await axios.post(
-            'http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/WSRDPXPEDCOM/',
-            data
-          );
-          console.log(response)
-          
-          // O código de resposta está em response.status
-          // Os dados da resposta estão em response.data
-          console.log(response.data);
-        } catch (error) {
-          console.error('Erro ao fazer a solicitação:', error);
-        }
-      },
-	  async takeValues(){
-			const response = await axios.get(
-            	'http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/crm/v1/customerVendor',
-          	);
-          	console.log("vendor",response.data)
-
-			const response2 = await axios.get(
-            	'http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/fat/v1/paymentcondition/',
-          	);
-			console.log("paiment",response2.data)
-
-			const response3 = await axios.get(
-            	'http://rodoparanaimplementos120531.protheus.cloudtotvs.com.br:4050/rest/api/fat/v1/carrier',
-        	);
-			console.log("carrier",response3.data)
+		testeRequest(){
+			const produtos = localStorage.getItem('apiData');
+            if (produtos) {
+                this.options = JSON.parse(produtos).map(item => ({
+                    
+                    text: `${item.Code} -> ${item.Description}` ,
+                    value: item,
+                }));
+				
+            }
 		},
+		async sendData(request) {
+			console.log(request)
+	
+			const requestItensGetApiSolicited = localStorage.getItem('branchSelect');
+			this.branchSelect = JSON.parse(requestItensGetApiSolicited)
+			console.log(this.branchSelect)
+			
+			console.log("FORNECEDOR",request.nameSupplier)
+			let itens = []
+			this.itens = itens
+			for (let index of request.products) {
+				console.log(index);
+				let prov = {};
+				prov.ITEM = `000${this.itens.length + 1}`; // Gera o valor do campo "ITEM" com base na posição
+				prov.PRODUTO = index.codeProduct;
+				prov.QUANTIDADE = index.amontProduct;
+				prov.VALUNIT = index.valueProduct;
+				this.itens.push(prov); // Adiciona o objeto ao array this.itens
+				}
+
+				console.log(this.itens);
+			// try {
+			// const data = {
+			// 	"OPCAO":3,
+			// 	"FILIAL":"01",
+			// 	"FORNECEDOR":"000001",//check
+			// 	"LOJA":"01",//CHECK
+			// 	"CONDFIN":"001",//CHECK
+			// 	"itens":[
+			// 		{
+			// 					"ITEM":"0001",//CHECK
+			// 			"PRODUTO":"RD208009105",	//CHECK			
+			// 			"QUANTIDADE":1,//CHECK
+			// 					"VALUNIT":85.50
+			// 		},
+			// 		{
+			// 					"ITEM":"0002",
+			// 			"PRODUTO":"RD208009105",				
+			// 			"QUANTIDADE":5,
+			// 					"VALUNIT":300
+			// 		}		 
+			// 	]
+			// };
+	
+			// const response = await axios.post(
+			// 	'http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/WSRDPXPEDCOM/',
+			// 	data
+			// );
+			// console.log(response)
+			
+			// // O código de resposta está em response.status
+			// // Os dados da resposta estão em response.data
+
+			// console.log('criou o pedido aaeeeeeeee é teeeeetraaa')
+			// console.log(response.data);
+			// } catch (error) {
+			// console.error('Erro ao fazer a solicitação:', error);
+			// }
+      	},
 		valueProps(){
 			return this.requestInfo
 		},
@@ -344,49 +355,50 @@ export default {
 			this.request = new ModelRequest(1, this.requestInfo, this.requestSupplier, this.requestFisco, this.requestPayment,)
 			this.request.products = []
 		},
-		 async sendData() {
-      //   try {
-      //     const data = {
-      //       "PEDIDO":[{
-      //           "FILIAL":"0101",
-      //           "FORNECEDOR":"000111",
-      //           "LOJA":"01",
-      //           "CONDFIN":"001",
-      //           "OPERACAO":"1",
-      //           "NUMERO":"",
-      //           "EMISSAO":"",
-      //           "NFISCAL":"",
-      //           "SERIE":"",
-      //       "ITENS":[{
-      //           "ITEM":"001",
-      //           "PRODUTO":"RD208009105",
-      //           "QUANTIDADE":1,
-      //           "VALUNIT":5
-      //           },{
-      //           "ITEM":"002",
-      //           "PRODUTO":"RD208009106",
-      //           "QUANTIDADE":1,
-      //           "VALUNIT":5
-      //           }]
-      //       }]
-      //       };
-  
-          const response = await axios.get(
-            'http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/reidoapsdu/consultar/fornecedores/',
-     
-          );
-          console.log("aquiiiii", response)
-          
-			// O código de resposta está em response.status
-			// Os dados da resposta estão em response.data
+		// async sendData() {
+		// // try {
+		// //   const data = {
+		// // 		"PEDIDO":[{
+		// // 			"FILIAL":"0101",//zc7
+		// // 			"FORNECEDOR":"000111",
+		// // 			"LOJA":"01",
+		// // 			"CONDFIN":"001",
+		// // 			"OPERACAO":"1",
+		// // 			"NUMERO":"",
+		// // 			"EMISSAO":"",
+		// // 			"NFISCAL":"",
+		// // 			"SERIE":"",
+		// // 		"ITENS":[{
+		// // 			"ITEM":"001",//zc8
+		// // 			"PRODUTO":"RD208009105",
+		// // 			"QUANTIDADE":1,
+		// // 			"VALUNIT":5
+		// // 			},{
+		// // 			"ITEM":"002",
+		// // 			"PRODUTO":"RD208009106",
+		// // 			"QUANTIDADE":1,
+		// // 			"VALUNIT":5
+		// // 			}]
+		// // 		}]
+		// //     };
 
-      	 },
-    },
-
-	created(){
-		this.sendData()
-		this.configModel()
+		// const response = await axios.get(
+		// 	'http://rodoparanaimplementos120532.protheus.cloudtotvs.com.br:4050/rest/reidoapsdu/consultar/fornecedores/'//,
+		// 	//data
+		// );
+		// console.log("aquiiiii", response)
 		
+		// 	// O código de resposta está em response.status
+		// 	// Os dados da resposta estão em response.data
+
+		// }
+	},
+	
+	created(){
+		//this.sendData()
+		this.configModel()
+		const requestItensGetApiSolicited = localStorage.getItem('branchSelect');
+		this.branchSelect = JSON.parse(requestItensGetApiSolicited)
 		if(this.$route.params.id){
 			let id = this.$route.params.id
 

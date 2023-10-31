@@ -55,7 +55,7 @@ export default {
 		return {
 			menuItens: [
 				{ title: this.$t('navgation.home'), icon: 'mdi-home', router:'home' },
-				{ title: this.$t('navgation.listRequest'), icon: 'mdi-list-box', router:'list'},
+				{ title: this.$t('navgation.listRequest'), icon: 'mdi-list-box', router:'listRequest'},
 				{ title: this.$t('borrow'), icon: 'mdi-home', router:'borrow' },
 				{ title: this.$t('support'), icon: 'mdi-list-box', router:'ticketSupport'},
 			],
